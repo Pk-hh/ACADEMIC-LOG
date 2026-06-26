@@ -1,0 +1,17 @@
+{
+  "short_name": "AcadLogPro",
+  "name": "Academic Log Pro",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0d0e12",
+  "theme_color": "#1c1c24",
+  "display": "standalone",
+  "orientation": "portrait"
+}
