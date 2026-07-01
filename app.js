@@ -15,7 +15,7 @@ let state = {
 
 // Available Days & Periods
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8];
+const PERIODS = [1, 2, 3, 4, 5, 6, 7];
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -85,19 +85,16 @@ const MOCK_SUBJECTS = [
 ];
 
 const MOCK_STUDENTS = [
-  // ECE - Sem VI - Sec A
-  { id: "std-1", name: "Rahul Kumar", rollNumber: "22A31A0401", registerNumber: "REG-10101", department: "ECE", year: "3rd Year", semester: "Sem VI", section: "A", email: "rahul.k@example.com", phone: "9876540001" },
-  { id: "std-2", name: "Priya Sharma", rollNumber: "22A31A0402", registerNumber: "REG-10102", department: "ECE", year: "3rd Year", semester: "Sem VI", section: "A", email: "priya.s@example.com", phone: "9876540002" },
-  { id: "std-3", name: "Amit Patel", rollNumber: "22A31A0403", registerNumber: "REG-10103", department: "ECE", year: "3rd Year", semester: "Sem VI", section: "A", email: "amit.p@example.com", phone: "9876540003" },
-  { id: "std-4", name: "Sneha Reddy", rollNumber: "22A31A0404", registerNumber: "REG-10104", department: "ECE", year: "3rd Year", semester: "Sem VI", section: "A", email: "sneha.r@example.com", phone: "9876540004" },
-  { id: "std-5", name: "Vikram Singh", rollNumber: "22A31A0405", registerNumber: "REG-10105", department: "ECE", year: "3rd Year", semester: "Sem VI", section: "A", email: "vikram.s@example.com", phone: "9876540005" },
+  { id: "std-1", name: "Rahul Kumar", rollNumber: "22A31A0401", subjectId: "sub-1", year: "3rd Year" },
+  { id: "std-2", name: "Priya Sharma", rollNumber: "22A31A0402", subjectId: "sub-1", year: "3rd Year" },
+  { id: "std-3", name: "Amit Patel", rollNumber: "22A31A0403", subjectId: "sub-1", year: "3rd Year" },
+  { id: "std-4", name: "Sneha Reddy", rollNumber: "22A31A0404", subjectId: "sub-1", year: "3rd Year" },
+  { id: "std-5", name: "Vikram Singh", rollNumber: "22A31A0405", subjectId: "sub-1", year: "3rd Year" },
   
-  // EEE - Sem VI - Sec B
-  { id: "std-6", name: "Rohan Das", rollNumber: "22A31A0501", registerNumber: "REG-10201", department: "EEE", year: "3rd Year", semester: "Sem VI", section: "B", email: "rohan.d@example.com", phone: "9876540006" },
-  { id: "std-7", name: "Neha Sen", rollNumber: "22A31A0502", registerNumber: "REG-10202", department: "EEE", year: "3rd Year", semester: "Sem VI", section: "B", email: "neha.s@example.com", phone: "9876540007" },
+  { id: "std-6", name: "Rohan Das", rollNumber: "22A31A0501", subjectId: "sub-2", year: "3rd Year" },
+  { id: "std-7", name: "Neha Sen", rollNumber: "22A31A0502", subjectId: "sub-2", year: "3rd Year" },
   
-  // ECE - Sem VIII - Sec A
-  { id: "std-8", name: "Karan Johar", rollNumber: "20A31A0401", registerNumber: "REG-10301", department: "ECE", year: "4th Year", semester: "Sem VIII", section: "A", email: "karan.j@example.com", phone: "9876540008" }
+  { id: "std-8", name: "Karan Johar", rollNumber: "20A31A0401", subjectId: "sub-3", year: "4th Year" }
 ];
 
 const MOCK_TIMETABLE = {
@@ -469,6 +466,7 @@ function setupDOMListeners() {
 
   // Daily log select bindings
   document.getElementById('new-log-btn').addEventListener('click', () => openLogModal());
+  document.getElementById('log-form').addEventListener('submit', handleLogSubmit);
   document.getElementById('log-subject-select').addEventListener('change', (e) => {
     const subId = e.target.value;
     updateLogUnitDropdown(subId);
@@ -503,10 +501,10 @@ function setupDOMListeners() {
   document.getElementById('student-import-form').addEventListener('submit', handleCSVImport);
 
   // Student list filter actions
-  document.getElementById('filter-stud-dept').addEventListener('change', renderStudents);
-  document.getElementById('filter-stud-sem').addEventListener('change', renderStudents);
-  document.getElementById('filter-stud-sec').addEventListener('change', renderStudents);
+  document.getElementById('filter-stud-subject').addEventListener('change', renderStudents);
+  document.getElementById('filter-stud-year').addEventListener('change', renderStudents);
   document.getElementById('filter-stud-search').addEventListener('input', renderStudents);
+  document.getElementById('btn-download-template').addEventListener('click', downloadExcelTemplate);
 
   // Calendar controls
   document.getElementById('prev-month-btn').addEventListener('click', () => changeCalendarMonth(-1));
@@ -1101,6 +1099,11 @@ function handleTimetableCellDelete() {
 function setupWizardListeners() {
   document.getElementById('btn-wizard-next').addEventListener('click', handleWizardNext);
   document.getElementById('btn-wizard-back').addEventListener('click', handleWizardBack);
+  document.getElementById('btn-wizard-submit').addEventListener('click', (e) => {
+    if (validateLogForm()) {
+      handleLogSubmit(e);
+    }
+  });
   
   // Quick Mark All Actions
   document.getElementById('btn-mark-all-present').addEventListener('click', () => markAllAttendance('P'));
@@ -1193,12 +1196,8 @@ function buildAttendanceRoster() {
 
   if (!subject) return;
 
-  // Filter students mapping to the subject's department, sem, section
-  const matchingStudents = state.students.filter(s => 
-    s.department.toLowerCase() === subject.department.toLowerCase() &&
-    s.semester.toLowerCase() === subject.yearSemester.toLowerCase() &&
-    (!subject.section || s.section.toLowerCase() === subject.section.toLowerCase())
-  );
+  // Filter students mapping directly to the subject's id
+  const matchingStudents = state.students.filter(s => s.subjectId === subject.id);
 
   if (matchingStudents.length === 0) {
     tbody.innerHTML = `
@@ -1625,49 +1624,26 @@ function deleteLog(logId) {
 // 5. STUDENT DATABASE MANAGEMENT CONTROLLER
 // ==========================================================================
 function renderStudents() {
-  // Populate filter dropdowns dynamically from existing student profiles
-  const depts = new Set();
-  const sems = new Set();
-  const secs = new Set();
+  const fSubject = document.getElementById('filter-stud-subject');
+  const fYear = document.getElementById('filter-stud-year');
 
-  state.students.forEach(s => {
-    if (s.department) depts.add(s.department);
-    if (s.semester) sems.add(s.semester);
-    if (s.section) secs.add(s.section);
+  const curSub = fSubject.value;
+  fSubject.innerHTML = '<option value="">All Subjects</option>';
+  state.subjects.forEach(sub => {
+    fSubject.innerHTML += `<option value="${sub.id}">${sub.name} (${sub.code})</option>`;
   });
-
-  const fDept = document.getElementById('filter-stud-dept');
-  const fSem = document.getElementById('filter-stud-sem');
-  const fSec = document.getElementById('filter-stud-sec');
-
-  const curDept = fDept.value;
-  const curSem = fSem.value;
-  const curSec = fSec.value;
-
-  fDept.innerHTML = '<option value="">All Depts</option>';
-  depts.forEach(d => fDept.innerHTML += `<option value="${d}">${d}</option>`);
-  fDept.value = curDept;
-
-  fSem.innerHTML = '<option value="">All Semesters</option>';
-  sems.forEach(s => fSem.innerHTML += `<option value="${s}">${s}</option>`);
-  fSem.value = curSem;
-
-  fSec.innerHTML = '<option value="">All Sections</option>';
-  secs.forEach(s => fSec.innerHTML += `<option value="${s}">${s}</option>`);
-  fSec.value = curSec;
+  fSubject.value = curSub;
 
   const tbody = document.getElementById('students-list-body');
   tbody.innerHTML = '';
 
-  const selDept = fDept.value.toLowerCase();
-  const selSem = fSem.value.toLowerCase();
-  const selSec = fSec.value.toLowerCase();
+  const selSubjectId = fSubject.value;
+  const selYear = fYear.value.toLowerCase();
   const searchVal = document.getElementById('filter-stud-search').value.toLowerCase();
 
   const filtered = state.students.filter(s => {
-    if (selDept && s.department.toLowerCase() !== selDept) return false;
-    if (selSem && s.semester.toLowerCase() !== selSem) return false;
-    if (selSec && s.section.toLowerCase() !== selSec) return false;
+    if (selSubjectId && s.subjectId !== selSubjectId) return false;
+    if (selYear && s.year.toLowerCase() !== selYear) return false;
     if (searchVal && !s.name.toLowerCase().includes(searchVal) && !s.rollNumber.toLowerCase().includes(searchVal)) return false;
     return true;
   });
@@ -1678,20 +1654,21 @@ function renderStudents() {
   }
 
   filtered.forEach(std => {
-    // Calculate overall attendance percentage
     const metrics = getStudentAttendanceMetrics(std.id);
     const attPct = metrics.totalClasses > 0 ? `${metrics.overallPercent}%` : '-';
     
-    // Highlight shortage in row
     const rowClass = (metrics.totalClasses > 0 && metrics.overallPercent < 75) ? 'shortage-risk-row' : '';
+
+    const subject = state.subjects.find(sub => sub.id === std.subjectId);
+    const subjectDisplay = subject ? `${subject.name} (${subject.code})` : 'N/A';
 
     const row = document.createElement('tr');
     row.className = rowClass;
     row.innerHTML = `
       <td><strong>${std.rollNumber}</strong></td>
-      <td>${std.registerNumber}</td>
       <td>${std.name}</td>
-      <td>${std.department} - ${std.semester} - Sec ${std.section}</td>
+      <td>${subjectDisplay}</td>
+      <td>${std.year}</td>
       <td>
         <strong style="color:${metrics.overallPercent < 75 ? 'var(--color-danger)' : 'var(--color-success)'}">${attPct}</strong>
         ${metrics.overallPercent < 75 && metrics.totalClasses > 0 ? `<span class="shortage-badge">Shortage</span>` : ''}
@@ -1717,11 +1694,7 @@ function getStudentAttendanceMetrics(studentId) {
 
   // Find logs belonging to this student's exact class criteria
   const classLogs = state.logs.filter(log => {
-    const subject = state.subjects.find(s => s.id === log.subjectId);
-    return subject &&
-           subject.department.toLowerCase() === student.department.toLowerCase() &&
-           subject.yearSemester.toLowerCase() === student.semester.toLowerCase() &&
-           (!subject.section || subject.section.toLowerCase() === student.section.toLowerCase()) &&
+    return log.subjectId === student.subjectId &&
            log.attendance !== null &&
            log.attendance !== undefined;
   });
@@ -1753,6 +1726,12 @@ function openStudentModal(studentId = '') {
   const form = document.getElementById('student-form');
   form.reset();
 
+  const subSelect = document.getElementById('stud-subject');
+  subSelect.innerHTML = '<option value="">Select Subject</option>';
+  state.subjects.forEach(sub => {
+    subSelect.innerHTML += `<option value="${sub.id}">${sub.name} (${sub.code})</option>`;
+  });
+
   if (studentId) {
     document.getElementById('student-modal-title').textContent = 'Edit Student Details';
     const std = state.students.find(s => s.id === studentId);
@@ -1760,13 +1739,8 @@ function openStudentModal(studentId = '') {
       document.getElementById('stud-edit-id').value = std.id;
       document.getElementById('stud-name').value = std.name;
       document.getElementById('stud-roll').value = std.rollNumber;
-      document.getElementById('stud-register').value = std.registerNumber;
-      document.getElementById('stud-dept').value = std.department;
+      document.getElementById('stud-subject').value = std.subjectId;
       document.getElementById('stud-year').value = std.year;
-      document.getElementById('stud-sem').value = std.semester;
-      document.getElementById('stud-sec').value = std.section;
-      document.getElementById('stud-email').value = std.email || '';
-      document.getElementById('stud-phone').value = std.phone || '';
     }
   } else {
     document.getElementById('student-modal-title').textContent = 'Register New Student';
@@ -1781,22 +1755,17 @@ function handleStudentSubmit(e) {
   const editId = document.getElementById('stud-edit-id').value;
   const name = document.getElementById('stud-name').value;
   const roll = document.getElementById('stud-roll').value;
-  const reg = document.getElementById('stud-register').value;
-  const dept = document.getElementById('stud-dept').value;
+  const subjectId = document.getElementById('stud-subject').value;
   const year = document.getElementById('stud-year').value;
-  const sem = document.getElementById('stud-sem').value;
-  const sec = document.getElementById('stud-sec').value;
-  const email = document.getElementById('stud-email').value;
-  const phone = document.getElementById('stud-phone').value;
 
   if (editId) {
     const idx = state.students.findIndex(s => s.id === editId);
     if (idx !== -1) {
-      state.students[idx] = { ...state.students[idx], name, rollNumber: roll, registerNumber: reg, department: dept, year, semester: sem, section: sec, email, phone };
+      state.students[idx] = { ...state.students[idx], name, rollNumber: roll, subjectId, year };
       showToast('Student details updated');
     }
   } else {
-    state.students.push({ id: generateUUID(), name, rollNumber: roll, registerNumber: reg, department: dept, year, semester: sem, section: sec, email, phone });
+    state.students.push({ id: generateUUID(), name, rollNumber: roll, subjectId, year });
     showToast('Student registered successfully');
   }
 
@@ -1817,9 +1786,6 @@ function deleteStudent(studentId) {
 // Bulk CSV/Excel imports parser
 function handleCSVImport(e) {
   e.preventDefault();
-  const dept = document.getElementById('imp-dept').value.trim();
-  const sem = document.getElementById('imp-sem').value.trim();
-  const sec = document.getElementById('imp-sec').value.trim();
   const fileInput = document.getElementById('imp-excel-file');
   const rawCSV = document.getElementById('imp-csv-data').value.trim();
 
@@ -1827,23 +1793,31 @@ function handleCSVImport(e) {
   function importStudentRoster(rows) {
     let importedCount = 0;
     rows.forEach(cols => {
-      if (cols.length >= 3) {
+      if (cols.length >= 4) {
         const name = String(cols[0] || '').trim();
         const roll = String(cols[1] || '').trim();
-        const reg = String(cols[2] || '').trim();
-        const email = String(cols[3] || '').trim();
-        const phone = String(cols[4] || '').trim();
+        const subInput = String(cols[2] || '').trim();
+        const year = String(cols[3] || '').trim();
 
-        if (!name || !roll || !reg) return;
+        if (!name || !roll || !subInput || !year) return;
 
-        // Check if duplicate roll number
-        const existing = state.students.find(s => s.rollNumber === roll);
+        // Try to match subject by code or name
+        const subject = state.subjects.find(s => 
+          s.code.toLowerCase() === subInput.toLowerCase() || 
+          s.name.toLowerCase() === subInput.toLowerCase()
+        );
+
+        if (!subject) return; // skip if subject is invalid
+
+        // Check if duplicate roll number AND subjectId
+        const existing = state.students.find(s => s.rollNumber === roll && s.subjectId === subject.id);
         if (!existing) {
           state.students.push({
             id: generateUUID(),
-            name, rollNumber: roll, registerNumber: reg,
-            department: dept, year: sem.includes('I') ? '3rd Year' : '4th Year', semester: sem, section: sec,
-            email, phone
+            name,
+            rollNumber: roll,
+            subjectId: subject.id,
+            year
           });
           importedCount++;
         }
@@ -1892,15 +1866,13 @@ function handleCSVImport(e) {
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          // Convert sheet to 2D array of rows
           const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           
-          // If the first row contains headers, we skip it
           let dataRows = rows;
           if (rows.length > 0) {
             const firstCol = String(rows[0][0] || '').toLowerCase();
             const secondCol = String(rows[0][1] || '').toLowerCase();
-            if (firstCol.includes('name') || secondCol.includes('roll') || firstCol.includes('student') || secondCol.includes('register')) {
+            if (firstCol.includes('name') || secondCol.includes('roll') || firstCol.includes('student') || secondCol.includes('subject')) {
               dataRows = rows.slice(1);
             }
           }
@@ -1918,7 +1890,6 @@ function handleCSVImport(e) {
       };
       reader.readAsText(file);
     }
-    // Reset file input so same file can be reloaded if needed
     fileInput.value = '';
   } else if (rawCSV) {
     parseTextData(rawCSV);
@@ -1940,15 +1911,15 @@ function renderStudentProfile(studentId) {
   // Set Profile Name
   document.getElementById('profile-student-title').textContent = `${student.name} (${student.rollNumber})`;
 
+  const subject = state.subjects.find(s => s.id === student.subjectId);
+  const subjectDisplay = subject ? `${subject.name} (${subject.code})` : 'N/A';
+
   // Info Block
   const infoBlock = document.getElementById('profile-info-block');
   infoBlock.innerHTML = `
     <div class="profile-info-item"><span>Roll Number</span><strong>${student.rollNumber}</strong></div>
-    <div class="profile-info-item"><span>Register Number</span><strong>${student.registerNumber}</strong></div>
-    <div class="profile-info-item"><span>Department</span><strong>${student.department}</strong></div>
-    <div class="profile-info-item"><span>Semester / Sec</span><strong>${student.semester} - Section ${student.section}</strong></div>
-    <div class="profile-info-item"><span>Email</span><strong>${student.email || 'Not Configured'}</strong></div>
-    <div class="profile-info-item"><span>Phone</span><strong>${student.phone || 'Not Configured'}</strong></div>
+    <div class="profile-info-item"><span>Subject</span><strong>${subjectDisplay}</strong></div>
+    <div class="profile-info-item"><span>Year</span><strong>${student.year}</strong></div>
   `;
 
   // Get metrics
@@ -1962,12 +1933,9 @@ function renderStudentProfile(studentId) {
       <div class="progress-bar-track" style="height:12px;"><div class="progress-bar-fill" style="width: ${metrics.overallPercent}%; background-color:${metrics.overallPercent < 75 ? 'var(--color-danger)' : 'var(--color-success)'};"></div></div>
     </div>
     <div style="margin-top:20px; display:flex; flex-direction:column; gap:12px;">
-      <h4 style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Subject-wise Breakdown</h4>
-      ${state.subjects.filter(sub => 
-          sub.department.toLowerCase() === student.department.toLowerCase() &&
-          sub.yearSemester.toLowerCase() === student.semester.toLowerCase() &&
-          (!sub.section || sub.section.toLowerCase() === student.section.toLowerCase())
-        ).map(sub => {
+      <h4 style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Subject Attendance</h4>
+      ${state.subjects.filter(sub => sub.id === student.subjectId)
+        .map(sub => {
           const subMetrics = metrics.subjectWise[sub.id] || { total: 0, present: 0 };
           const subPct = subMetrics.total > 0 ? Math.round((subMetrics.present / subMetrics.total) * 100) : 100;
           return `
@@ -1991,11 +1959,7 @@ function renderStudentProfile(studentId) {
   historyBody.innerHTML = '';
 
   const classLogs = state.logs.filter(log => {
-    const subject = state.subjects.find(s => s.id === log.subjectId);
-    return subject &&
-           subject.department.toLowerCase() === student.department.toLowerCase() &&
-           subject.yearSemester.toLowerCase() === student.semester.toLowerCase() &&
-           (!subject.section || subject.section.toLowerCase() === student.section.toLowerCase()) &&
+    return log.subjectId === student.subjectId &&
            log.attendance !== null &&
            log.attendance !== undefined &&
            log.attendance[studentId] !== undefined;
@@ -2308,12 +2272,8 @@ function generateReportPreview() {
     const subjectObj = state.subjects.find(s => s.id === subId);
     if (!subjectObj) return;
 
-    // Filter students belonging to this class/section
-    const studentsMatching = state.students.filter(s => 
-      s.department.toLowerCase() === subjectObj.department.toLowerCase() &&
-      s.semester.toLowerCase() === subjectObj.yearSemester.toLowerCase() &&
-      (!subjectObj.section || s.section.toLowerCase() === subjectObj.section.toLowerCase())
-    );
+    // Filter students registered for this subject
+    const studentsMatching = state.students.filter(s => s.subjectId === subId);
 
     // Get logs in that month for that subject
     const subjectLogs = state.logs.filter(log => {
@@ -2332,7 +2292,7 @@ function generateReportPreview() {
       <div class="report-preview-header">
         <h2>Attendance Register Grid</h2>
         <p style="font-size:14px; font-weight:600; color:var(--text-muted);">${subjectObj.name} (${subjectObj.code})</p>
-        <p style="font-size:12px; color:var(--text-muted);">${subjectObj.department} - Sem ${subjectObj.yearSemester} - Section ${subjectObj.section} | ${MONTH_NAMES[filterMonthIndex]} ${year}</p>
+        <p style="font-size:12px; color:var(--text-muted);">${subjectObj.name} (${subjectObj.code}) | ${MONTH_NAMES[filterMonthIndex]} ${year}</p>
       </div>
 
       ${studentsMatching.length === 0 
@@ -2973,4 +2933,46 @@ function clearAllData() {
     window.location.hash = 'dashboard';
     navigate('dashboard');
   }
+}
+
+function downloadExcelTemplate() {
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Name,Roll Number,Subject Code,Year\n";
+  csvContent += "Rahul Kumar,22A31A0401,EC-601,3rd Year\n";
+  csvContent += "Priya Sharma,22A31A0402,EC-601,3rd Year\n";
+  csvContent += "Rohan Das,22A31A0501,EE-602,3rd Year\n";
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "Students_Import_Template.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Excel/CSV template downloaded');
+}
+
+function validateLogForm() {
+  const sub = document.getElementById('log-subject-select').value;
+  const type = document.getElementById('log-type').value;
+  const date = document.getElementById('log-date').value;
+  const topic = document.getElementById('log-topic-taught').value;
+
+  if (!sub) {
+    showToast('Please select a Subject.', 'warning');
+    return false;
+  }
+  if (!type) {
+    showToast('Please select a Log Type.', 'warning');
+    return false;
+  }
+  if (!date) {
+    showToast('Please select a Date.', 'warning');
+    return false;
+  }
+  if (!['Holiday', 'Exam Day'].includes(type) && !topic) {
+    showToast('Topic Completed / Taught is required.', 'warning');
+    return false;
+  }
+  return true;
 }

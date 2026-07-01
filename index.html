@@ -346,14 +346,13 @@
               <thead>
                 <tr>
                   <th>Day</th>
-                  <th>Period 1<br><span class="time-sub">08:30 - 09:20</span></th>
-                  <th>Period 2<br><span class="time-sub">09:20 - 10:10</span></th>
-                  <th>Period 3<br><span class="time-sub">10:30 - 11:20</span></th>
-                  <th>Period 4<br><span class="time-sub">11:20 - 12:10</span></th>
-                  <th>Period 5<br><span class="time-sub">13:10 - 14:00</span></th>
-                  <th>Period 6<br><span class="time-sub">14:00 - 14:50</span></th>
-                  <th>Period 7<br><span class="time-sub">15:00 - 15:50</span></th>
-                  <th>Period 8<br><span class="time-sub">15:50 - 16:40</span></th>
+                  <th>Period 1<br><span class="time-sub">09:30 - 10:20</span></th>
+                  <th>Period 2<br><span class="time-sub">10:20 - 11:10</span></th>
+                  <th>Period 3<br><span class="time-sub">11:20 - 12:10</span></th>
+                  <th>Period 4<br><span class="time-sub">12:10 - 13:00</span></th>
+                  <th>Period 5<br><span class="time-sub">13:25 - 14:15</span></th>
+                  <th>Period 6<br><span class="time-sub">14:15 - 15:05</span></th>
+                  <th>Period 7<br><span class="time-sub">15:05 - 15:55</span></th>
                 </tr>
               </thead>
               <tbody id="timetable-body"></tbody>
@@ -424,21 +423,19 @@
 
           <div class="log-filter-bar glass-panel">
             <div class="filter-field">
-              <label for="filter-stud-dept">Department</label>
-              <select id="filter-stud-dept" class="glass-input">
-                <option value="">All Depts</option>
+              <label for="filter-stud-subject">Subject</label>
+              <select id="filter-stud-subject" class="glass-input">
+                <option value="">All Subjects</option>
               </select>
             </div>
             <div class="filter-field">
-              <label for="filter-stud-sem">Semester</label>
-              <select id="filter-stud-sem" class="glass-input">
-                <option value="">All Semesters</option>
-              </select>
-            </div>
-            <div class="filter-field">
-              <label for="filter-stud-sec">Section</label>
-              <select id="filter-stud-sec" class="glass-input">
-                <option value="">All Sections</option>
+              <label for="filter-stud-year">Year</label>
+              <select id="filter-stud-year" class="glass-input">
+                <option value="">All Years</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
               </select>
             </div>
             <div class="filter-field" style="flex: 2;">
@@ -452,9 +449,9 @@
               <thead>
                 <tr>
                   <th>Roll Number</th>
-                  <th>Register Number</th>
                   <th>Name</th>
-                  <th>Class Details</th>
+                  <th>Subject</th>
+                  <th>Year</th>
                   <th>Attendance %</th>
                   <th style="text-align: right;">Actions</th>
                 </tr>
@@ -925,7 +922,6 @@
                 <option value="5">Period 5</option>
                 <option value="6">Period 6</option>
                 <option value="7">Period 7</option>
-                <option value="8">Period 8</option>
               </select>
             </div>
             <div class="form-group">
@@ -1050,7 +1046,7 @@
           <button type="button" class="glass-btn secondary" id="btn-wizard-cancel" data-close="log-modal">Cancel</button>
           <button type="button" class="glass-btn secondary" id="btn-wizard-back" style="display: none;">Back</button>
           <button type="button" class="glass-btn primary" id="btn-wizard-next">Next Step</button>
-          <button type="submit" class="glass-btn success" id="btn-wizard-submit" style="display: none;">Save Academic Record</button>
+          <button type="button" class="glass-btn success" id="btn-wizard-submit" style="display: none;">Save Academic Record</button>
         </div>
       </form>
     </div>
@@ -1110,15 +1106,11 @@
         </div>
         <div class="form-row-2">
           <div class="form-group">
-            <label for="stud-register">Register Number</label>
-            <input type="text" id="stud-register" required placeholder="e.g. REG-983827" class="glass-input">
+            <label for="stud-subject">Subject</label>
+            <select id="stud-subject" required class="glass-input">
+              <option value="">Select Subject</option>
+            </select>
           </div>
-          <div class="form-group">
-            <label for="stud-dept">Department</label>
-            <input type="text" id="stud-dept" required placeholder="e.g. ECE" class="glass-input">
-          </div>
-        </div>
-        <div class="form-row-3">
           <div class="form-group">
             <label for="stud-year">Year</label>
             <select id="stud-year" required class="glass-input">
@@ -1127,24 +1119,6 @@
               <option value="3rd Year">3rd Year</option>
               <option value="4th Year">4th Year</option>
             </select>
-          </div>
-          <div class="form-group">
-            <label for="stud-sem">Semester</label>
-            <input type="text" id="stud-sem" required placeholder="e.g. Sem VI" class="glass-input">
-          </div>
-          <div class="form-group">
-            <label for="stud-sec">Section</label>
-            <input type="text" id="stud-sec" required placeholder="e.g. A" class="glass-input">
-          </div>
-        </div>
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="stud-email">Email Address (Optional)</label>
-            <input type="email" id="stud-email" placeholder="rahul@example.com" class="glass-input">
-          </div>
-          <div class="form-group">
-            <label for="stud-phone">Phone Number (Optional)</label>
-            <input type="tel" id="stud-phone" placeholder="9876543210" class="glass-input">
           </div>
         </div>
         
@@ -1166,19 +1140,13 @@
         </button>
       </div>
       <form id="student-import-form" class="modal-form">
-        <div class="form-row-3">
-          <div class="form-group">
-            <label for="imp-dept">Department</label>
-            <input type="text" id="imp-dept" required placeholder="e.g. ECE" class="glass-input">
-          </div>
-          <div class="form-group">
-            <label for="imp-sem">Semester</label>
-            <input type="text" id="imp-sem" required placeholder="e.g. Sem VI" class="glass-input">
-          </div>
-          <div class="form-group">
-            <label for="imp-sec">Section</label>
-            <input type="text" id="imp-sec" required placeholder="e.g. A" class="glass-input">
-          </div>
+        <div class="form-group">
+          <label>Excel/CSV Bulk Template</label>
+          <p class="help-text">Download the sample template, fill in student details, and upload it.</p>
+          <button type="button" id="btn-download-template" class="glass-btn success" style="width: 100%; margin-bottom: 16px;">
+            <svg class="btn-icon"><use href="#icon-download"></use></svg>
+            Download Excel Template
+          </button>
         </div>
         <div class="form-group">
           <label for="imp-excel-file">Upload Spreadsheet File (Excel / CSV)</label>
@@ -1188,8 +1156,8 @@
         <div style="text-align: center; color: var(--text-muted); font-size: 11px; font-weight: 700; margin: 4px 0;">— OR PASTE PLAIN TEXT —</div>
         <div class="form-group">
           <label for="imp-csv-data">Paste Spreadsheet Data (CSV / Tab-Delimited)</label>
-          <p class="help-text">Columns: <strong>Name, Roll Number, Register Number, Email (opt), Phone (opt)</strong>.</p>
-          <textarea id="imp-csv-data" rows="6" placeholder="Rahul Kumar,22A31A0401,REG-12030,rahul@mail.com,98765&#10;Amit Sharma,22A31A0402,REG-12031,amit@mail.com,98766" class="glass-input"></textarea>
+          <p class="help-text">Columns: <strong>Name, Roll Number, Subject (Code or Name), Year</strong>.</p>
+          <textarea id="imp-csv-data" rows="6" placeholder="Rahul Kumar,22A31A0401,EC-601,3rd Year&#10;Amit Sharma,22A31A0402,EC-601,3rd Year" class="glass-input"></textarea>
         </div>
         
         <div class="modal-footer">
